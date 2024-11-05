@@ -39,6 +39,44 @@ function App() {
     });
   }
 
+  // Movement of computer based on ml model
+  async function makePredictedMove() {
+    const possibleMove = game.moves();
+
+    // exit if the game is over
+    if (game.game_over() || game.in_draw() || possibleMove.length === 0) {
+      setGameOver(true);
+      const winner = game.turn() === 'w' ? 'Black' : 'White';
+      setWinner(winner);
+      return;
+    }
+
+    // select random move
+    const fen = game.fen()
+    const move = await getMove(fen);
+    
+    // play random move
+    safeGameMutate((game) => {
+      const result = game.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
+      //console.log(result)
+    });
+  }
+
+  // fetch best move
+  async function getMove(fen) {
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fen: fen })
+  };
+
+    const response = await fetch('http://localhost:8000/predict', requestOptions);
+    const data = await response.json()
+    const move = data['move']
+
+    return move
+  }  
+
   // Perform an action when a piece is dropped by a user
   function onDrop(source, target) {
     if (gameOver) return false;
@@ -54,7 +92,7 @@ function App() {
     // illegal move
     if (move === null) return false;
     // valid move
-    setTimeout(makeRandomMove, 200);
+    setTimeout(makePredictedMove, 200);
     return true;
   }
 
