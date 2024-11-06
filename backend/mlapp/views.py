@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 model = ChessCNN()
-model_path = os.path.join(os.path.dirname(__file__), 'chess_model.pth')
+model_path = os.path.join(os.path.dirname(__file__), '../chess_model(1).pth')
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval() 
 
@@ -52,7 +52,7 @@ def predict(request):
                 new_board = chess_board.copy()
                 new_board.push(move)
                 
-                max_eval = -20
+                max_eval = -100000.0
 
                 for opp_move in new_board.legal_moves:
                     new_opp_board = new_board.copy()
@@ -73,7 +73,7 @@ def predict(request):
             return move from dict with highest board eval
             """
             best_move = ''
-            min = 20
+            min = 100000.0
 
             for key, value in dict.items():
                 print(key, value.item()) 
